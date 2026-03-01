@@ -1296,7 +1296,7 @@
             const result = await addAdminComment(bookingId, comment);
             if (result.success) {
                 showAlert('Reply sent to user', 'success');
-                loadCourtBookings();
+                await loadCourtBookings();
             } else {
                 showAlert(result.message, 'error');
             }
@@ -1306,8 +1306,8 @@
             const result = await approveCourtBooking(bookingId);
             if (result.success) {
                 showAlert('Court booking approved', 'success');
-                loadCourtBookings();
-                loadStats();
+                await loadCourtBookings();
+                await loadStats();
             } else {
                 showAlert(result.message, 'error');
             }
@@ -1325,8 +1325,8 @@
             const result = await rejectCourtBooking(bookingId);
             if (result.success) {
                 showAlert('Court booking rejected', 'success');
-                loadCourtBookings();
-                loadStats();
+                await loadCourtBookings();
+                await loadStats();
             } else {
                 showAlert(result.message, 'error');
             }
@@ -1336,8 +1336,8 @@
             const result = await updateCourtBookingStatus(bookingId, 'booked');
             if (result.success) {
                 showAlert('Court booking restored', 'success');
-                loadCourtBookings();
-                loadStats();
+                await loadCourtBookings();
+                await loadStats();
             } else {
                 showAlert(result.message, 'error');
             }
@@ -1348,7 +1348,7 @@
                 const result = await cancelCourtBooking(bookingId);
                 if (result.success) {
                     showAlert('Booking cancelled', 'success');
-                    loadCourtBookings();
+                    await loadCourtBookings();
                 } else {
                     showAlert(result.message, 'error');
                 }
@@ -1357,26 +1357,33 @@
 
         async function deleteCourtBooking(bookingId) {
             if (confirm('Are you sure you want to permanently delete this court booking?')) {
-                const result = await deleteBooking(bookingId);
-                if (result.success) {
+                const result = await (typeof window.deleteBooking === 'function' ? window.deleteBooking(bookingId) : supabase.from('court_bookings').delete().eq('id', bookingId));
+                if (result.success || !result.error) {
                     showAlert('Court booking deleted', 'success');
-                    loadCourtBookings();
-                    loadStats();
+                    await loadCourtBookings();
+                    await loadStats();
                 } else {
-                    showAlert(result.message, 'error');
+                    showAlert(result.message || result.error.message, 'error');
                 }
             }
         }
 
         async function deleteConcernAdmin(concernId) {
             if (confirm('Are you sure you want to permanently delete this concern?')) {
-                const result = await adminDeleteConcern(concernId);
-                if (result.success) {
-                    showAlert('Concern deleted', 'success');
-                    loadConcerns();
-                    loadStats();
+                if (typeof window.deleteConcern === 'function') {
+                    const result = await window.deleteConcern(concernId);
+                    if (result.success) {
+                        showAlert('Concern deleted', 'success');
+                        await loadConcerns();
+                        await loadStats();
+                    } else {
+                        showAlert(result.message, 'error');
+                    }
                 } else {
-                    showAlert(result.message, 'error');
+                    await supabase.from('concerns').delete().eq('id', concernId);
+                    showAlert('Concern deleted', 'success');
+                    await loadConcerns();
+                    await loadStats();
                 }
             }
         }
@@ -1384,26 +1391,26 @@
         async function approveRequest(id) {
             if (await updateBorrowingStatus(id, 'approved')) {
                 showAlert('Request approved', 'success');
-                loadStats();
-                loadRequests();
+                await loadStats();
+                await loadRequests();
             }
         }
 
         async function rejectRequest(id) {
             if (await updateBorrowingStatus(id, 'rejected')) {
                 showAlert('Request rejected', 'success');
-                loadStats();
-                loadRequests();
-                loadEquipment();
+                await loadStats();
+                await loadRequests();
+                await loadEquipment();
             }
         }
 
         async function returnRequest(id) {
             if (await updateBorrowingStatus(id, 'returned')) {
                 showAlert('Equipment marked as returned', 'success');
-                loadStats();
-                loadRequests();
-                loadEquipment();
+                await loadStats();
+                await loadRequests();
+                await loadEquipment();
             }
         }
 
@@ -1471,8 +1478,8 @@
             if (success) {
                 showAlert('Response submitted', 'success');
                 closeModal('concernModal');
-                loadStats();
-                loadConcerns();
+                await loadStats();
+                await loadConcerns();
             }
         });
 
@@ -1520,26 +1527,32 @@
             if (result.success) {
                 showAlert('Event created', 'success');
                 closeModal('eventModal');
-                loadEvents();
+                await loadEvents();
             }
         });
 
         async function approveEvent(id) {
             if (await updateEventStatus(id, 'approved')) {
                 showAlert('Event approved', 'success');
-                loadStats();
-                loadEvents();
+                await loadStats();
+                await loadEvents();
             }
         }
 
         async function deleteEvent(id) {
             if (confirm('Delete this event?')) {
-                const result = await deleteEvent(id);
-                if (result.success) {
-                    showAlert('Event deleted', 'success');
-                    loadEvents();
+                if (typeof window.deleteEvent === 'function') {
+                    const result = await window.deleteEvent(id);
+                    if (result.success) {
+                        showAlert('Event deleted', 'success');
+                        await loadEvents();
+                    } else {
+                        showAlert(result.message, 'error');
+                    }
                 } else {
-                    showAlert(result.message, 'error');
+                    await supabase.from('events').delete().eq('id', id);
+                    showAlert('Event deleted', 'success');
+                    await loadEvents();
                 }
             }
         }
@@ -1584,7 +1597,7 @@
             if (result.success) {
                 showAlert('Equipment added', 'success');
                 closeModal('addEquipmentModal');
-                loadEquipment();
+                await loadEquipment();
             } else {
                 showAlert(result.message, 'error');
             }
@@ -1621,7 +1634,7 @@
             if (result.success) {
                 showAlert('Equipment updated', 'success');
                 closeModal('editEquipmentModal');
-                loadEquipment();
+                await loadEquipment();
             } else {
                 showAlert(result.message, 'error');
             }
@@ -1706,7 +1719,8 @@
             showAlert('Concerns CSV Exported', 'success');
         }
 
-        function printReport(title, rawData, keysToInclude) {
+        async function printReport(title, dataPromise, keysToInclude) {
+            const rawData = await dataPromise;
             if (!rawData || rawData.length === 0) {
                 alert("No data available to print.");
                 return;

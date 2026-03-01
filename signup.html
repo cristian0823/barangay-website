@@ -228,15 +228,7 @@
             return score;
         }
 
-        function checkUsernameExists(username) {
-            const users = JSON.parse(localStorage.getItem('barangayUsers') || '[]');
-            return users.some(u => u.username.toLowerCase() === username.toLowerCase());
-        }
-
-        function checkEmailExists(email) {
-            const users = JSON.parse(localStorage.getItem('barangayUsers') || '[]');
-            return users.some(u => u.email.toLowerCase() === email.toLowerCase());
-        }
+        // checkUsernameExists and checkEmailExists handled by Supabase in registerUser
 
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -298,18 +290,8 @@
                 return;
             }
 
-            if (checkEmailExists(email)) {
-                showToast('Email already exists', 'error');
-                return;
-            }
-
             if (!validateUsername(username)) {
                 showToast('Invalid username format', 'error');
-                return;
-            }
-
-            if (checkUsernameExists(username)) {
-                showToast('Username already taken', 'error');
                 return;
             }
 
