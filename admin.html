@@ -321,6 +321,19 @@
             border: 1.5px solid var(--green-200);
         }
 
+        /* TEST BUTTON */
+        .test-btn {
+            background: red;
+            color: white;
+            padding: 20px;
+            font-size: 20px;
+            cursor: pointer;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+        }
+
         /* SECTIONS */
         .section-container {
             background: #fff;
@@ -762,6 +775,7 @@
 </head>
 
 <body>
+    <button class="test-btn" onclick="alert('TEST BUTTON WORKS!')">🧪 TEST</button>
     <div class="dashboard">
         <header class="dashboard-header">
             <div class="dashboard-nav">
@@ -826,12 +840,12 @@
             </div>
 
             <div class="sidebar-nav">
-                <button class="sidebar-btn" onclick="switchSection('court-bookings', this)">🏀 Court Bookings</button>
-                <button class="sidebar-btn active" onclick="switchSection('requests', this)">📦 Equipment
+                <button class="sidebar-btn" onclick="switchSection('court-bookings', this); alert('Court Bookings clicked')">🏀 Court Bookings</button>
+                <button class="sidebar-btn active" onclick="switchSection('requests', this); alert('Requests clicked')">📦 Equipment
                     Requests</button>
-                <button class="sidebar-btn" onclick="switchSection('concerns', this)">📋 Concerns</button>
-                <button class="sidebar-btn" onclick="switchSection('events', this)">📅 Court Events</button>
-                <button class="sidebar-btn" onclick="switchSection('equipment', this)">🪑 Equipment</button>
+                <button class="sidebar-btn" onclick="switchSection('concerns', this); alert('Concerns clicked')">📋 Concerns</button>
+                <button class="sidebar-btn" onclick="switchSection('events', this); alert('Events clicked')">📅 Court Events</button>
+                <button class="sidebar-btn" onclick="switchSection('equipment', this); alert('Equipment clicked')">🪑 Equipment</button>
             </div>
 
             <div id="requests-section" class="section-container">
@@ -1111,6 +1125,8 @@
         });
 
         function switchSection(section, btn) {
+            alert('Switching to: ' + section);
+            console.log('switchSection called with:', section);
             document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById('court-bookings-section').style.display = 'none';
@@ -1118,7 +1134,12 @@
             document.getElementById('concerns-section').style.display = 'none';
             document.getElementById('events-section').style.display = 'none';
             document.getElementById('equipment-section').style.display = 'none';
-            document.getElementById(section + '-section').style.display = 'block';
+            var targetSection = document.getElementById(section + '-section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            } else {
+                alert('Section not found: ' + section + '-section');
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
